@@ -1,0 +1,11 @@
+version: '3'
+services:
+  es01:
+    build: ./es5
+    ports:
+      - 9200:9200
+      - 9300:9300
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ElasticSearch Test</title>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+        .app-content {
+            display: flex;
+            flex-direction: column;
+            width: 512px;
+            margin: auto;
+        }
+        .app-content > h1 {
+            margin: 30px auto;
+        }
+
+        .form {
+            display: flex;
+        }
+        .form-input {
+            border: 1px solid #ccc;
+            padding: 0px 15px;
+            width: 100%;
+            border-radius: 50px;
+        }
+        .form-button {
+            height: 36px;
+            background: #fff;
+            border: 1px solid #ccc;
+            margin-left: 3px;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+
+        .unstyled-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .search-errors {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 3px;
+            margin: 10px 0;
+            display: none;
+        }
+        .search-errors.active {
+            display: block;
+        }
+        
+
+        .search-results > h2 {
+            font-size: 18pt;
+            font-weight: 100;
+        }
+        .search-result-text {
+            text-justify: auto;
+            text-align: justify;
+            line-height: 24px;
+        }
+    </style>
+  </head>
+  <body>    
+      <div class="app-content">
+        <h1>ElasticSearch Test</h1>
+        <form class="form" onsubmit="event.preventDefault(); onSubmit(event);" name="search-form">
+            <input type="text" required class="form-input" name="query" placeholder="Enter your query..."></input>
+            <button type="submit" class="form-button">Submit</button>
+        </form>
+        <div class="search-errors">
+            error
+        </div>
+        <div class="search-results">
+            <p class="search-result-text"></p>
+        </div>
+      </div>
+      
+  </body>
+
+  <script>
+      const getErrorElement = () => {
+        const [element] = document.getElementsByClassName('search-errors');
+
+        return {
+            show: (msg) => {
+                element.classList.add('active');
+                element.innerHTML = msg;
+            },
+            hide: () => {
+                element.classList.remove('active');
+            },
+        };
+      };
+
+      const getResultElement = () => {
+        const [element] = document.getElementsByClassName('search-result-text');
+
+        return {
+            setResult: (text) => {
+                element.classList.remove('loading');
+                element.innerHTML = text.replace(/\r?\n/, '<br/>');
+            }
+        };
+      };
+
+      const getFormData = (e) => {
+        const formData = new FormData(e.target);
+        const form = {};
+        formData.forEach((x, key) => {
+            const value = form[key];
+            if (value === undefined) {
+                form[key] = x;
+            } else if (Array.isArray(value)) {
+                form[key] = [...value, x];
+            } else {
+                form[key] = [value, x];
+            }
+        });
+
+        return form;
+      };
+
+
+      const result$ = getResultElement();
+      const error$ = getErrorElement();
+
+      const setResult = (results) => {
+        if (results.length === 0) {
+            result$.setResult('Nothing found.');
+        } else {
+            result$.setResult(results[0].data.body);
+        }
+      };
+
+      const onSubmit = (e) => {
+          const { query } = getFormData(e);
+
+          error$.hide();
+
+          fetch(`/search?q=${query}`)
+          .then(res => {
+              if (res.status === 200) {
+                  return res.json();
+              } else {
+                  return res.json().then(x => Promise.reject(x));
+              }
+          })
+          .then(data => {
+            setResult(data);
+          })
+          .catch(err => {
+            console.error(msg);
+            error$.show(msg);
+            result$.setLoading(false);
+          });
+      };
+  </script>
+</html>
