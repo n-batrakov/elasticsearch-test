@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "tsc && node ./dist/index.js server",
+    "init": "tsc && node ./dist/index.js init",
     "index": "tsc && node ./dist/index.js index",
     "search": "tsc && node ./dist/index.js search"
   },

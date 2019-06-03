@@ -1,7 +1,8 @@
 import app from 'commander';
-import { queryCommandHandler } from './queryCommand';
-import { indexDocumentsCommandHandler } from './indexCommand';
-import { startServerCommandHandler } from './serverCommand';
+import { searchCommandHandler } from './cli/searchCommand';
+import { indexDocumentsCommandHandler } from './cli/indexDocumentsCommand';
+import { startServerCommandHandler } from './cli/serverCommand';
+import { createIndexCommandHandler } from './cli/createIndexCommand';
 
 
 const catchErrors = (callback: () => Promise<void>) => {
@@ -25,15 +26,21 @@ app
 .version('0.1.0');
 
 app
-.command('search <phrase>')
-.action((phrase, cmd) => catchErrors(() => queryCommandHandler(phrase)));
+.command('init')
+.action(() => catchErrors(() => createIndexCommandHandler()));
 
 app
 .command('index <dir>')
 .action((dir, cmd) => catchErrors(() => indexDocumentsCommandHandler(dir)));
 
 app
+.command('search <phrase>')
+.action((phrase, cmd) => catchErrors(() => searchCommandHandler(phrase)));
+
+app
 .command('server')
 .action(() => catchErrors(() => startServerCommandHandler({ host: '0.0.0.0', port: '8080' })));
+
+
 
 app.parse(process.argv);

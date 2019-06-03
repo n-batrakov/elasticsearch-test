@@ -1,57 +1,20 @@
-import settings from './settings';
 import fetch from 'node-fetch';
+import { ElasticQueryResponse, ElasticErrorResponse, ElasticConfig } from './types';
 
-const config = {
-    ...settings,
-    highlight: {
-        fields: { [settings.textField]: {} },
-    },
-};
-
-type ElasticQueryHit = {
-    _index: string,
-    _type: string,
-    _id: string,
-    _score: number,
-    _source: any,
-};
-
-type ElasticQueryHitCollection = {
-    total: number,
-    max_score: number,
-    hits: Array<ElasticQueryHit>,
-};
-
-type ElasticError = {
-    type: string,
-    reason: string,
-};
-type ElasticErrorResponse = {
-    status: string,
-    error: ElasticError & { root_cause: ElasticError[] },
-};
-
-type ElasticQueryResponse = {
-    took: number,
-    timed_out: boolean,
-    hits: ElasticQueryHitCollection,
-};
-
-
-export const search = async (query: string) => {
-    const uri = `${settings.host}/${settings.index}/${settings.type}/_search`;
+export const search = async (query: string, config: ElasticConfig) => {
+    const uri = `${config.host}/${config.index}/${config.type}/_search`;
     const body = {
         query: {
             multi_match: {
                 query,
-                fields: [settings.textField],
+                fields: [config.textField],
                 fuzziness: 2,
             },
         },
-        highlight: config.highlight,
+        highlight: {
+            fields: { [config.textField]: {} },
+        },
     };
-
-    console.log(JSON.stringify(body));
 
     const response = await fetch(uri, {
         method: 'POST',

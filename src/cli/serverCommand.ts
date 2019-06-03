@@ -1,9 +1,10 @@
 import fastify from 'fastify';
 import staticFiles from 'fastify-static';
-import api from './api';
-import { AppContainer } from './api/shared';
+import api from '../api';
+import { AppContainer } from '../api/shared';
 import path from 'path';
 import fs from 'fs';
+import config from '../settings';
 
 const logger = process.env.NODE_ENV !== 'production'
     ? {
@@ -18,7 +19,7 @@ const logger = process.env.NODE_ENV !== 'production'
 export const startServerCommandHandler = async (cmd: { host: string, port: string }) => {
     const server = fastify({ logger });
 
-    const container: AppContainer = {};
+    const container: AppContainer = { config };
 
     const host = cmd.host;
     const parsedPort = parseInt(cmd.port, 10);

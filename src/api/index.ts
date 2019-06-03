@@ -1,5 +1,5 @@
 import { RegisterHandler } from './shared';
-import { search } from '../search';
+import { search } from '../es/search';
 
 const searchHandler: RegisterHandler = (server, container) => server.route({
     method: 'GET',
@@ -18,7 +18,7 @@ const searchHandler: RegisterHandler = (server, container) => server.route({
     handler: async (req, res) => {
         const query = req.query['q'];
 
-        const results = await search(query);
+        const results = await search(query, container.config);
 
         return results;
     },
