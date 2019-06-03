@@ -57,11 +57,17 @@
         }
         
 
-        .search-results > h2 {
+        .search-result {
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 30px;
+        }
+        .search-result > h2 {
             font-size: 18pt;
             font-weight: 100;
         }
-        .search-result-text {
+        .search-result > p {
             text-justify: auto;
             text-align: justify;
             line-height: 24px;
@@ -79,7 +85,6 @@
             error
         </div>
         <div class="search-results">
-            <p class="search-result-text"></p>
         </div>
       </div>
       
@@ -100,13 +105,31 @@
         };
       };
 
-      const getResultElement = () => {
-        const [element] = document.getElementsByClassName('search-result-text');
+      const createResultElement = ({id, data, score}) => {
+        const p = document.createElement('p');
+        p.innerHTML = data.body.replace(/\r?\n/, '<br/>');
+
+        const header = document.createElement('h2');
+        header.innerText = `${id} [${score}]`;
+
+        const container = document.createElement('div');
+        container.className = 'search-result';
+        container.appendChild(header);
+        container.appendChild(p);
+
+        return container;
+      };
+
+      const getResultsElement = () => {
+        const [element] = document.getElementsByClassName('search-results');
 
         return {
-            setResult: (text) => {
-                element.classList.remove('loading');
-                element.innerHTML = text.replace(/\r?\n/, '<br/>');
+            setResults: (results) => {
+                console.log(results);
+                const items = results.map(x => createResultElement(x));
+
+                element.innerHTML = '';
+                items.forEach(x => element.appendChild(x));
             }
         };
       };
@@ -129,16 +152,8 @@
       };
 
 
-      const result$ = getResultElement();
+      const result$ = getResultsElement();
       const error$ = getErrorElement();
-
-      const setResult = (results) => {
-        if (results.length === 0) {
-            result$.setResult('Nothing found.');
-        } else {
-            result$.setResult(results[0].data.body);
-        }
-      };
 
       const onSubmit = (e) => {
           const { query } = getFormData(e);
@@ -154,12 +169,11 @@
               }
           })
           .then(data => {
-            setResult(data);
+            result$.setResults(data);
           })
           .catch(err => {
-            console.error(msg);
+            console.error(err);
             error$.show(msg);
-            result$.setLoading(false);
           });
       };
   </script>
