@@ -4,6 +4,7 @@ import { ElasticQueryResponse, ElasticErrorResponse, ElasticConfig } from './typ
 export const search = async (query: string, config: ElasticConfig) => {
     const uri = `${config.host}/${config.index}/${config.type}/_search`;
     const body = {
+        size: 5,
         query: {
             multi_match: {
                 query,
@@ -22,20 +23,21 @@ export const search = async (query: string, config: ElasticConfig) => {
         headers: { 'Content-Type': 'application/json' },
     });
 
-    const responseBody: ElasticQueryResponse | ElasticErrorResponse = await response.json();
+    const responseBody: ElasticQueryResponse<any> | ElasticErrorResponse = await response.json();
 
     if (response.status === 200) {
-        const queryResponse = responseBody as ElasticQueryResponse;
+        const queryResponse = responseBody as ElasticQueryResponse<any>;
         const { total, hits } = queryResponse.hits;
         if (total === 0) {
             return [];
         } else {
-            return hits.map((hit: any) => {
+            return hits.map((hit) => {
                 const id = hit._id;
-                const data = hit._source;
+                const body = hit._source[config.textField];
+                const highlight = hit.highlight === undefined ? undefined : hit.highlight[config.textField];
                 const score = hit._score;
 
-                return { id, score, data };
+                return { id, score, data: { body, highlight } };
             });
         }
     } else {
