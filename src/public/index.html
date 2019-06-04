@@ -12,15 +12,19 @@
         .app-content {
             display: flex;
             flex-direction: column;
-            width: 512px;
-            margin: auto;
         }
         .app-content > h1 {
             margin: 30px auto;
         }
 
+        .search-header {
+            width: 600px;
+            margin: 30px auto;
+        }
+
         .form {
             display: flex;
+            height: 50px;
         }
         .form-input {
             border: 1px solid #ccc;
@@ -29,7 +33,6 @@
             border-radius: 50px;
         }
         .form-button {
-            height: 36px;
             background: #fff;
             border: 1px solid #ccc;
             margin-left: 3px;
@@ -56,7 +59,9 @@
             display: block;
         }
         
-
+        .search-results {
+            margin: 0 30px;
+        }
         .search-result {
             margin: 20px 0;
             border: 1px solid #ccc;
@@ -72,20 +77,25 @@
             text-align: justify;
             line-height: 24px;
         }
+
+        .search-result em {
+            font-weight: bold;
+            background-color: #fdffab;
+            font-style: normal;
+        }
     </style>
   </head>
   <body>    
       <div class="app-content">
-        <h1>ElasticSearch Test</h1>
-        <form class="form" onsubmit="event.preventDefault(); onSubmit(event);" name="search-form">
-            <input type="text" required class="form-input" name="query" placeholder="Enter your query..."></input>
-            <button type="submit" class="form-button">Submit</button>
-        </form>
-        <div class="search-errors">
-            error
+        <div class="search-header">
+            <form class="form" onsubmit="event.preventDefault(); onSubmit(event);" name="search-form">
+                <input type="text" required class="form-input" name="query" placeholder="Enter your query..."></input>
+                <button type="submit" class="form-button">Submit</button>
+            </form>
+            <div class="search-errors"></div>
         </div>
-        <div class="search-results">
-        </div>
+        
+        <div class="search-results"></div>
       </div>
       
   </body>
@@ -105,12 +115,24 @@
         };
       };
 
+      const highlighText = (body, highlight) => {
+        return highlight.reduce(
+            (acc, x) => {
+                const source = x.replace(/<em>/g, '').replace(/<\/em>/g, '');
+                console.log(source);
+                return acc.replace(source, x);
+            },
+            body
+        );
+      };
+
       const createResultElement = ({id, data, score}) => {
         const p = document.createElement('p');
-        p.innerHTML = data.body.replace(/\r?\n/, '<br/>');
+        const text = highlighText(data.body.replace(/\r?\n/, '<br/>'), data.highlight);
+        p.innerHTML = text;
 
         const header = document.createElement('h2');
-        header.innerText = `${id} [${score}]`;
+        header.innerText = `${id} (score: ${score})`;
 
         const container = document.createElement('div');
         container.className = 'search-result';
@@ -125,7 +147,6 @@
 
         return {
             setResults: (results) => {
-                console.log(results);
                 const items = results.map(x => createResultElement(x));
 
                 element.innerHTML = '';
@@ -173,7 +194,7 @@
           })
           .catch(err => {
             console.error(err);
-            error$.show(msg);
+            error$.show(err.message);
           });
       };
   </script>
