@@ -147,6 +147,11 @@
 
         return {
             setResults: (results) => {
+                if (results.length === 0) {
+                    element.innerHTML = '<p>Nothing found.</p>'
+                    return;
+                }
+
                 const items = results.map(x => createResultElement(x));
 
                 element.innerHTML = '';
